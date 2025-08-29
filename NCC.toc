@@ -1,0 +1,8 @@
+## Interface: 110000
+## Title: NCC
+## Notes: Norwegian Carry Crew raid hype (simple)
+## Author: NCC Guild
+## Version: 1.0.1
+## SavedVariables: NCCDB
+
+NCC.lua
