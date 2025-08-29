@@ -97,7 +97,7 @@ local function UpdateTargetGUIDs()
       end
     end
   elseif IsInGroup() then
-    for i = 1, 5 do
+    for i = 1, 4 do
       local unit = "party"..i
       if UnitExists(unit) then
         local nm = NormalizeName(GetUnitName(unit, true))
@@ -183,7 +183,7 @@ local function HandleCombatLog()
   end
 end
 
--- ===== Slash: on/off/toggle/test/death =====
+-- ===== Slash: on/off/toggle/test/death/group tests =====
 SLASH_NCC1 = "/ncc"
 SlashCmdList["NCC"] = function(msg)
   msg = (msg and msg:lower() or "")
@@ -199,14 +199,27 @@ SlashCmdList["NCC"] = function(msg)
   elseif msg == "test" then
     print("|cff00ff88NCC:|r test lust sound")
     PlayLustSound()
+  elseif msg:match("^test%s+%w+") then
+    -- individual test for group sounds: /ncc test group1, group2, ...
+    local _, _, group = msg:find("^test%s+(%w+)")
+    if group and SAD_SOUND_PATHS[group] then
+      print(string.format("|cff00ff88NCC:|r test sad sound for group '%s'", group))
+      PlaySadSoundForGroup(group)
+    else
+      print("|cff00ff88NCC:|r unknown group. Available groups:")
+      for g, _ in pairs(SAD_SOUND_PATHS) do
+        print("  " .. g)
+      end
+    end
   elseif msg == "death" then
-    print("|cff00ff88NCC:|r test death sound")
+    print("|cff00ff88NCC:|r test sad sound for group1 (default)")
     PlaySadSoundForGroup("group1")
   else
     print("|cff00ff88NCC commands:|r")
     print("  /ncc on|off|toggle")
-    print("  /ncc test   - play lust.ogg")
-    print("  /ncc death  - play sad_group1.ogg")
+    print("  /ncc test             - play lust.ogg")
+    print("  /ncc death            - play sad sound for group1")
+    print("  /ncc test <groupname> - play sad sound for specific group")
   end
 end
 
