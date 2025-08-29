@@ -66,7 +66,7 @@ local function UpdateTargetGUID()
       end
     end
   elseif IsInGroup() then
-    for i = 1, 4 do
+    for i = 1, 5 do
       local u = "party"..i
       if UnitExists(u) then
         local nm = NormalizeName(GetUnitName(u, true))
@@ -253,3 +253,4 @@ f:SetScript("OnEvent", function(self, event, ...)
     OnChatMsgLoot(...)
   end
 end)
+
