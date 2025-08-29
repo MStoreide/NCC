@@ -37,7 +37,7 @@ end
 
 -- ===== Player groups (by normalized name) =====
 local PLAYER_GROUPS = {
-  group1 = { "haugerbooy","pjsuka","slabedask" },
+  group1 = {"pjsuka", "scailie", "haugerbooy", "slikkeplott", "slabedask", "slaskepott", "klonkedonke"},
   group2 = { "dafuqzmonk","dafuqzhunt","dafuqzlock","dafuqzhauger","dafuqz","dafuqzwar","dafuqzshaman","dafuqzevoker","dafuqzdh","dafuqzsneak","dafuqzdruid","dafuqzmage","dafuqzprest" },
   group3 = { "rocketboy","boltsman","furryfaen","beefclown","smoothfuk" },
   group4 = { "trollfjert","plipp","divahauger","månki" },
@@ -253,4 +253,5 @@ f:SetScript("OnEvent", function(self, event, ...)
     OnChatMsgLoot(...)
   end
 end)
+
 
