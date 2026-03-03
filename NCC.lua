@@ -48,7 +48,7 @@ local PLAYER_GROUPS = {
   group1 = {"wesø", "pjsuka","scailie","haugerbooy","slikkeplott","slabedask","slaskepott","klonkedonke"},
   group2 = {"dafuqzmonk","dafuqzhunt","dafuqzlock","dafuqzhauger","dafuqz","dafuqzwar","dafuqzshaman","dafuqzevoker","dafuqzdh","dafuqzsneak","dafuqzdruid","dafuqzmage","dafuqzprest"},
   group3 = {"rocketboy","boltsman","furryfaen","beefclown","smoothfuk", "mugork"},
-  group4 = {"trollfjert","plipp","divahauger","månki", "jøssånøfyse"},
+  group4 = {"trollfjert","plipp","divahauger","månki", "jøssånøfyse", "lupercal"},
 }
 
 local nameToGroup = {}
