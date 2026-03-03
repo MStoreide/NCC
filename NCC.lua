@@ -19,6 +19,16 @@ local SAD_SOUND_PATHS = {
   group3 = "Interface\\AddOns\\NCC\\media\\marius_sad.ogg",
   group4 = "Interface\\AddOns\\NCC\\media\\markus_sad.ogg",
 }
+local PATH_SPIRIT_LINK = "Interface\\AddOns\\NCC\\media\\spirit_link.ogg"
+local SPIRIT_LINK_IDS = {
+  [98008] = true,  -- Spirit Link Totem (Restoration Shaman)
+}
+local PATH_TOUCH_OF_DEATH = "Interface\\AddOns\\NCC\\media\\touch_of_death.ogg"
+local TOUCH_OF_DEATH_IDS = {
+  [115080] = true,  -- Touch of Death (all Monk specs, Midnight class tree)
+}
+
+
 
 -- ===== Helpers =====
 local function tryFile(path) return PlaySoundFile(path, "Master") or false end
@@ -89,6 +99,20 @@ local function PlayRingSound()
   PlaySoundFile("Sound\\Interface\\RaidWarning.ogg", "Master")
 end
 
+local function PlaySpiritLinkSound()
+  if not NCCDB.enabled then return end
+  if tryFile(PATH_SPIRIT_LINK) then return end
+  PlaySoundFile("Sound\\Interface\\RaidWarning.ogg", "Master")
+end
+
+local function PlayTouchOfDeathSound()
+  if not NCCDB.enabled then return end
+  if tryFile(PATH_TOUCH_OF_DEATH) then return end
+  PlaySoundFile("Sound\\Interface\\RaidWarning.ogg", "Master")
+end
+
+
+
 -- ===== Scope helper: only ring pings in 5-man dungeons =====
 local function InPartyDungeon()
   local inInst, instType = IsInInstance()
@@ -122,6 +146,32 @@ local function HandleUnitAura(unit)
     lustActive = false  -- reset so next lust triggers again
   end
 end
+
+-- UNIT_SPELLCAST_SUCCEEDED: fires for player, party, raid, target, focus.
+-- Not black-boxed in Midnight — it is a unit-frame event, not a CLEU subevent.
+-- In M+ this naturally covers "player" + "party1"-"party4".
+local lastSpiritLinkAt   = 0
+local lastTouchOfDeathAt = 0
+
+local function HandleUnitSpellcastSucceeded(unit, castGUID, spellID)
+  local now = GetTime()
+
+  if SPIRIT_LINK_IDS[spellID] then
+    if now - lastSpiritLinkAt < 2.0 then return end
+    lastSpiritLinkAt = now
+    PlaySpiritLinkSound()
+    return
+  end
+
+  if TOUCH_OF_DEATH_IDS[spellID] then
+    if now - lastTouchOfDeathAt < 2.0 then return end
+    lastTouchOfDeathAt = now
+    PlayTouchOfDeathSound()
+    return
+  end
+end
+
+
 
 -- ===== UNIT_HEALTH: death detection =====
 -- Replaces CLEU UNIT_DIED + GUID tracking, both of which are broken in Midnight
@@ -199,6 +249,10 @@ SlashCmdList["NCC"] = function(msg)
     end
   elseif msg == "ring" then
     print("|cff00ff88NCC:|r test ring sound"); PlayRingSound()
+  elseif msg == "spiritlink" then
+    print("|cff00ff88NCC:|r test spirit link sound"); PlaySpiritLinkSound()
+  elseif msg == "tod" then
+    print("|cff00ff88NCC:|r test Touch of Death sound"); PlayTouchOfDeathSound()
   else
     print("|cff00ff88NCC commands:|r")
     print("  /ncc on|off|toggle")
@@ -206,6 +260,8 @@ SlashCmdList["NCC"] = function(msg)
     print("  /ncc death            - play sad sound for group1")
     print("  /ncc test <groupname> - play sad sound for specific group")
     print("  /ncc ring             - play finger.ogg")
+    print("  /ncc spiritlink       - play spirit_link.ogg")
+    print("  /ncc tod              - play touch_of_death.ogg")
   end
 end
 
@@ -218,6 +274,7 @@ f:RegisterEvent("UNIT_AURA")
 f:RegisterEvent("UNIT_HEALTH")
 f:RegisterEvent("ENCOUNTER_LOOT_RECEIVED")
 f:RegisterEvent("CHAT_MSG_LOOT")
+f:RegisterEvent("UNIT_SPELLCAST_SUCCEEDED")
 
 f:SetScript("OnEvent", function(self, event, ...)
   if event == "PLAYER_LOGIN" or event == "PLAYER_REGEN_ENABLED" then
@@ -236,5 +293,7 @@ f:SetScript("OnEvent", function(self, event, ...)
     OnEncounterLootReceived(...)
   elseif event == "CHAT_MSG_LOOT" then
     OnChatMsgLoot(...)
+  elseif event == "UNIT_SPELLCAST_SUCCEEDED" then
+    HandleUnitSpellcastSucceeded(...)
   end
 end)
