@@ -157,23 +157,23 @@ local LUST_IDS = {
 -- ===== UNIT_AURA: lust detection on player (via debuffs) =====
 local lustActive = false
 
-local function HandleUnitAura(unit)
-  if unit ~= "player" then return end
-  local index = 1
-  while true do
-    local aura = C_UnitAuras.GetAuraDataByIndex("player", index, "HARMFUL")
-    if not aura then break end
-    local spellName = GetSpellInfo(aura.spellId)
-    if spellName and (spellName == "Sated" or spellName == "Exhaustion" or spellName == "Temporal Displacement") then
-      if not lustActive then
-        lustActive = true
-        PlayLustSound()
-      end
-      break
-    end
-    index = index + 1
-  end
-end
+-- local function HandleUnitAura(unit)
+--  if unit ~= "player" then return end
+--  local index = 1
+--  while true do
+--    local aura = C_UnitAuras.GetAuraDataByIndex("player", index, "HARMFUL")
+--    if not aura then break end
+--    local spellName = GetSpellInfo(aura.spellId)
+--    if spellName and (spellName == "Sated" or spellName == "Exhaustion" or spellName == "Temporal Displacement") then
+--      if not lustActive then
+--        lustActive = true
+--        PlayLustSound()
+--      end
+--      break
+--    end
+--    index = index + 1
+--  end
+--end
 
 
 -- ===== UNIT_SPELLCAST_SUCCEEDED: Spirit Link / Touch of Death =====
