@@ -26,7 +26,7 @@ local SAD_SOUND_PATHS = {
   group3 = "Interface\\AddOns\\NCC\\media\\marius_sad.ogg",
   group4 = "Interface\\AddOns\\NCC\\media\\markus_sad.ogg",
   group5 = "Interface\\AddOns\\NCC\\media\\hasse_sad.ogg",
-  group6 = "Interface\\AddOns\\NCC\\media\\hamrick_sad.ogg",
+  group6 = "Interface\\AddOns\\NCC\\media\\hamrick_sad.mp3",
   group7 = "Interface\\AddOns\\NCC\\media\\kevin_sad.mp3",
   group8 = "Interface\\AddOns\\NCC\\media\\shandriz_sad.ogg",
 }
@@ -144,36 +144,36 @@ local function InPartyDungeon()
 end
 
 -- ===== Lust debuff SpellIDs (Sated/Exhaustion, non-secret in Midnight) =====
-local LUST_IDS = {
-  [57723]  = true, -- Exhaustion
-  [57724]  = true, -- Sated
-  [80354]  = true, -- Temporal Displacement
-  [95809]  = true, -- Insanity (Hunter pet)
-  [160455] = true, -- Fatigued (Hunter pet)
-  [264689] = true, -- Fatigued (alt Hunter pet)
-  [390435] = true, -- Exhaustion (new)
-}
+-- local LUST_IDS = {
+--   [57723]  = true, -- Exhaustion
+--   [57724]  = true, -- Sated
+--   [80354]  = true, -- Temporal Displacement
+--   [95809]  = true, -- Insanity (Hunter pet)
+--   [160455] = true, -- Fatigued (Hunter pet)
+--   [264689] = true, -- Fatigued (alt Hunter pet)
+--   [390435] = true, -- Exhaustion (new)
+-- }
 
 -- ===== UNIT_AURA: lust detection on player (via debuffs) =====
-local lustActive = false
+-- local lustActive = false
 
-local function HandleUnitAura(unit)
-  if unit ~= "player" then return end
-  local index = 1
-  while true do
-    local aura = C_UnitAuras.GetAuraDataByIndex("player", index, "HARMFUL")
-    if not aura then break end
-    local spellName = GetSpellInfo(aura.spellId)
-    if spellName and (spellName == "Sated" or spellName == "Exhaustion" or spellName == "Temporal Displacement") then
-      if not lustActive then
-        lustActive = true
-        PlayLustSound()
-      end
-      break
-    end
-    index = index + 1
-  end
-end
+-- local function HandleUnitAura(unit)
+--  if unit ~= "player" then return end
+--  local index = 1
+--  while true do
+--    local aura = C_UnitAuras.GetAuraDataByIndex("player", index, "HARMFUL")
+--    if not aura then break end
+--    local spellName = GetSpellInfo(aura.spellId)
+--    if spellName and (spellName == "Sated" or spellName == "Exhaustion" or spellName == "Temporal Displacement") then
+--      if not lustActive then
+--        lustActive = true
+--        PlayLustSound()
+--      end
+--      break
+--    end
+--    index = index + 1
+--  end
+--end
 
 
 -- ===== UNIT_SPELLCAST_SUCCEEDED: Spirit Link / Touch of Death =====
