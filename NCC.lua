@@ -27,6 +27,8 @@ local SAD_SOUND_PATHS = {
   group4 = "Interface\\AddOns\\NCC\\media\\markus_sad.ogg",
   group5 = "Interface\\AddOns\\NCC\\media\\hasse_sad.ogg",
   group6 = "Interface\\AddOns\\NCC\\media\\hamrick_sad.ogg",
+  group7 = "Interface\\AddOns\\NCC\\media\\kevin_sad.mp3",
+  group8 = "Interface\\AddOns\\NCC\\media\\shandriz_sad.ogg",
 }
 
 local SPIRIT_LINK_IDS = {
@@ -65,7 +67,9 @@ local PLAYER_GROUPS = {
   group3 = {"rocketboy","boltsman","furryfaen","beefclown","smoothfuk","mugork"},
   group4 = {"trollfjert","plipp","divahauger","månki","jøssånøfyse","lupercal", "pissdoggo"},
   group5 = {"theshtwinds", "speltlompe"},
-  group6 = {"Dovaahki", "Werloth"},
+  group6 = {"dovaahki", "werloth"},
+  group7 = {"hooleesheet"},
+  group8 = {"shandriz"},
 }
 
 local nameToGroup = {}
