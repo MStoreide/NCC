@@ -17,8 +17,6 @@ end
 -- ===== File paths =====
 local PATH_LUST            = "Interface\\AddOns\\NCC\\media\\lust.ogg"
 local PATH_RING            = "Interface\\AddOns\\NCC\\media\\finger.ogg"
-local PATH_SPIRIT_LINK     = "Interface\\AddOns\\NCC\\media\\spirit_link.ogg"
-local PATH_TOUCH_OF_DEATH  = "Interface\\AddOns\\NCC\\media\\touch_of_death.ogg"
 
 local SAD_SOUND_PATHS = {
   group1 = "Interface\\AddOns\\NCC\\media\\braka_sad.ogg",
@@ -26,18 +24,11 @@ local SAD_SOUND_PATHS = {
   group3 = "Interface\\AddOns\\NCC\\media\\marius_sad.ogg",
   group4 = "Interface\\AddOns\\NCC\\media\\markus_sad.ogg",
   group5 = "Interface\\AddOns\\NCC\\media\\hasse_sad.ogg",
-  group6 = "Interface\\AddOns\\NCC\\media\\hamrick_sad.mp3",
+  group6 = "Interface\\AddOns\\NCC\\media\\hamrick_sad.ogg",
   group7 = "Interface\\AddOns\\NCC\\media\\kevin_sad.mp3",
   group8 = "Interface\\AddOns\\NCC\\media\\shandriz_sad.ogg",
 }
 
-local SPIRIT_LINK_IDS = {
-  [98008] = true,  -- Spirit Link Totem (Restoration Shaman)
-}
-
-local TOUCH_OF_DEATH_IDS = {
-  [115080] = true, -- Touch of Death (all Monk specs, Midnight class tree)
-}
 
 -- ===== Helpers =====
 local function tryFile(path)
@@ -124,18 +115,6 @@ local function PlayRingSound()
   PlaySoundFile("Sound\\Interface\\RaidWarning.ogg", "Master")
 end
 
-local function PlaySpiritLinkSound()
-  if not NCCDB.enabled then return end
-  print("NCC debug: spiritlink path:", PATH_SPIRIT_LINK)
-  if tryFile(PATH_SPIRIT_LINK) then return end
-  PlaySoundFile("Sound\\Interface\\RaidWarning.ogg", "Master")
-end
-
-local function PlayTouchOfDeathSound()
-  if not NCCDB.enabled then return end
-  if tryFile(PATH_TOUCH_OF_DEATH) then return end
-  PlaySoundFile("Sound\\Interface\\RaidWarning.ogg", "Master")
-end
 
 -- ===== Scope helper: only ring pings in 5-man dungeons =====
 local function InPartyDungeon()
@@ -144,18 +123,18 @@ local function InPartyDungeon()
 end
 
 -- ===== Lust debuff SpellIDs (Sated/Exhaustion, non-secret in Midnight) =====
--- local LUST_IDS = {
---   [57723]  = true, -- Exhaustion
---   [57724]  = true, -- Sated
---   [80354]  = true, -- Temporal Displacement
---   [95809]  = true, -- Insanity (Hunter pet)
---   [160455] = true, -- Fatigued (Hunter pet)
---   [264689] = true, -- Fatigued (alt Hunter pet)
---   [390435] = true, -- Exhaustion (new)
--- }
+local LUST_IDS = {
+  [57723]  = true, -- Exhaustion
+  [57724]  = true, -- Sated
+  [80354]  = true, -- Temporal Displacement
+  [95809]  = true, -- Insanity (Hunter pet)
+  [160455] = true, -- Fatigued (Hunter pet)
+  [264689] = true, -- Fatigued (alt Hunter pet)
+  [390435] = true, -- Exhaustion (new)
+}
 
 -- ===== UNIT_AURA: lust detection on player (via debuffs) =====
--- local lustActive = false
+--local lustActive = false
 
 -- local function HandleUnitAura(unit)
 --  if unit ~= "player" then return end
@@ -176,27 +155,6 @@ end
 --end
 
 
--- ===== UNIT_SPELLCAST_SUCCEEDED: Spirit Link / Touch of Death =====
-local lastSpiritLinkAt   = 0
-local lastTouchOfDeathAt = 0
-
-local function HandleUnitSpellcastSucceeded(unit, castGUID, spellID)
-  local now = GetTime()
-
-  if SPIRIT_LINK_IDS[spellID] then
-    if now - lastSpiritLinkAt < 2.0 then return end
-    lastSpiritLinkAt = now
-    PlaySpiritLinkSound()
-    return
-  end
-
-  if TOUCH_OF_DEATH_IDS[spellID] then
-    if now - lastTouchOfDeathAt < 2.0 then return end
-    lastTouchOfDeathAt = now
-    PlayTouchOfDeathSound()
-    return
-  end
-end
 
 -- ===== UNIT_HEALTH: death detection =====
 local deadPlayed = {}  -- unit token -> true once sad sound has fired for this death
@@ -246,11 +204,39 @@ local function OnChatMsgLoot(msg, playerName)
   end
 end
 
--- ===== Slash commands =====
 SLASH_NCC1 = "/ncc"
 SlashCmdList["NCC"] = function(msg)
   print("NCC debug: raw msg:", msg)
   msg = (msg and msg:lower() or "")
+  if msg == "groups" then
+    print("|cff00ff88NCC:|r Available NCC groups:")
+    for group, members in pairs(PLAYER_GROUPS) do
+      print("  "..group..": "..table.concat(members, ", "))
+    end
+    return
+  elseif msg:match("^add%s+[%w%-_]+%s+group%d$") then
+    local name, group = msg:match("^add%s+([%w%-_]+)%s+(group%d)$")
+    if not name or not group then
+      print("|cff00ff88NCC:|r Usage: /ncc add <name> <group>")
+      return
+    end
+    if not PLAYER_GROUPS[group] then
+      print("|cff00ff88NCC:|r Group '"..group.."' does not exist.")
+      return
+    end
+    -- Normalize name and check if already present
+    local normName = NormalizeName(name)
+    for _, existing in ipairs(PLAYER_GROUPS[group]) do
+      if NormalizeName(existing) == normName then
+        print("|cff00ff88NCC:|r Name '"..name.."' is already in "..group..".")
+        return
+      end
+    end
+    table.insert(PLAYER_GROUPS[group], name)
+    nameToGroup[normName] = group
+    print("|cff00ff88NCC:|r Added '"..name.."' to "..group..".")
+    return
+  end
   if msg == "on" then
     NCCDB.enabled = true;  print("|cff00ff88NCC:|r enabled = true")
   elseif msg == "off" then
@@ -274,15 +260,6 @@ SlashCmdList["NCC"] = function(msg)
     end
   elseif msg == "ring" then
     print("|cff00ff88NCC:|r test ring sound"); PlayRingSound()
-  elseif msg == "lustdebuff" then
-    print("|cff00ff88NCC:|r test lust debuff detection")
-    -- Manually trigger lustActive state change to test sound
-    lustActive = false  -- reset state
-    HandleUnitAura("player")  -- simulate aura update
-  elseif msg == "spiritlink" then
-    print("NCC: spiritlink branch reached"); PlaySpiritLinkSound()
-  elseif msg == "tod" then
-    print("NCC: tod branch reached"); PlayTouchOfDeathSound()
   else
     print("|cff00ff88NCC commands:|r")
     print("  /ncc on|off|toggle")
@@ -290,6 +267,8 @@ SlashCmdList["NCC"] = function(msg)
     print("  /ncc death            - play sad sound for group1")
     print("  /ncc test <groupname> - play sad sound for specific group")
     print("  /ncc ring             - play finger.ogg")
+    print("  /ncc groups           - list NCC groups and members")
+    print("  /ncc add <name> <group> - add a name to a group (e.g., /ncc add Bob group1)")
     print("  /ncc spiritlink       - play spirit_link.ogg")
     print("  /ncc tod              - play touch_of_death.ogg")
   end
@@ -300,11 +279,9 @@ f:RegisterEvent("PLAYER_LOGIN")
 f:RegisterEvent("PLAYER_REGEN_ENABLED")
 f:RegisterEvent("GROUP_ROSTER_UPDATE")
 f:RegisterEvent("PLAYER_ENTERING_WORLD")
-f:RegisterEvent("UNIT_AURA")
 f:RegisterEvent("UNIT_HEALTH")
 f:RegisterEvent("ENCOUNTER_LOOT_RECEIVED")
 f:RegisterEvent("CHAT_MSG_LOOT")
-f:RegisterEvent("UNIT_SPELLCAST_SUCCEEDED")
 
 f:SetScript("OnEvent", function(self, event, ...)
   if event == "PLAYER_LOGIN" or event == "PLAYER_REGEN_ENABLED" then
@@ -315,8 +292,6 @@ f:SetScript("OnEvent", function(self, event, ...)
   elseif event == "GROUP_ROSTER_UPDATE" or event == "PLAYER_ENTERING_WORLD" then
     RebuildPartySet()
     wipe(deadPlayed)
-  elseif event == "UNIT_AURA" then
-    HandleUnitAura(...)
   elseif event == "UNIT_HEALTH" then
     HandleUnitHealth(...)
   elseif event == "ENCOUNTER_LOOT_RECEIVED" then
