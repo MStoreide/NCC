@@ -21,6 +21,13 @@ local PATH_LUST        = "Interface\\AddOns\\NCC\\media\\lust.ogg"
 local PATH_RING        = "Interface\\AddOns\\NCC\\media\\finger.ogg"
 local PATH_PULL_START  = "Interface\\AddOns\\NCC\\media\\pull_start.mp3"
 local PATH_PULL_END    = "Interface\\AddOns\\NCC\\media\\lust.ogg"
+local PATH_COUNTDOWN = {
+  [5] = "Interface\\AddOns\\NCC\\media\\5.ogg",
+  [4] = "Interface\\AddOns\\NCC\\media\\4.ogg",
+  [3] = "Interface\\AddOns\\NCC\\media\\3.ogg",
+  [2] = "Interface\\AddOns\\NCC\\media\\2.ogg",
+  [1] = "Interface\\AddOns\\NCC\\media\\1.ogg",
+}
 
 
 local SAD_SOUND_PATHS = {
@@ -54,8 +61,8 @@ end
 
 local function NormalizeName(name)
   if not name then return nil end
-  local base = name:match("^[^-]+") or name
-  return base:lower()
+  local base = string.match(name, "^[^-]+") or name
+  return string.lower(base)
 end
 
 
@@ -140,6 +147,13 @@ local function PlayPullEndSound()
   if not NCCDB.enabled then return end
   if tryFile(PATH_PULL_END) then return end
   PlaySoundFile("Sound\\Interface\\RaidWarning.ogg", "Master")
+end
+
+
+local function PlayCountdownTick(num)
+  if not NCCDB.enabled then return end
+  local path = PATH_COUNTDOWN[num]
+  if path then tryFile(path) end
 end
 
 
@@ -289,6 +303,9 @@ local function StartPullTimer(seconds)
     remaining = remaining - 1
     if remaining > 0 then
       ShowCountdown(remaining)
+      if remaining <= 5 then
+        PlayCountdownTick(remaining)
+      end
       if remaining % 10 == 0 or remaining <= 5 then
         print(string.format("|cff00ff88NCC:|r Pull in %ds", remaining))
         if chatType then SendChatMessage("Pull in " .. remaining .. "s", chatType) end
