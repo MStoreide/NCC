@@ -5,12 +5,16 @@ NCCDB = NCCDB or {}
 
 
 -- ===== Settings =====
-local defaults = { enabled = true }
+local defaults = { enabled = true, customNames = {} }
 local function applyDefaults()
   NCCDB = NCCDB or {}
   for k, v in pairs(defaults) do
     if NCCDB[k] == nil then
-      NCCDB[k] = v
+      if type(v) == "table" then
+        NCCDB[k] = {}
+      else
+        NCCDB[k] = v
+      end
     end
   end
 end
@@ -61,8 +65,12 @@ end
 
 local function NormalizeName(name)
   if not name then return nil end
-  local base = string.match(name, "^[^-]+") or name
-  return string.lower(base)
+  local ok, result = pcall(function()
+    local base = string.match(name, "^[^-]+") or name
+    return string.lower(base)
+  end)
+  if ok then return result end
+  return nil
 end
 
 
@@ -83,6 +91,20 @@ local nameToGroup = {}
 for group, names in pairs(PLAYER_GROUPS) do
   for _, name in ipairs(names) do
     nameToGroup[NormalizeName(name)] = group
+  end
+end
+
+local function LoadCustomNames()
+  if not NCCDB or not NCCDB.customNames then return end
+  for _, entry in ipairs(NCCDB.customNames) do
+    local name, group = entry.name, entry.group
+    if PLAYER_GROUPS[group] then
+      local normName = NormalizeName(name)
+      if not nameToGroup[normName] then
+        table.insert(PLAYER_GROUPS[group], name)
+        nameToGroup[normName] = group
+      end
+    end
   end
 end
 
@@ -355,7 +377,8 @@ SlashCmdList["NCC"] = function(msg)
     end
     table.insert(PLAYER_GROUPS[group], name)
     nameToGroup[normName] = group
-    print("|cff00ff88NCC:|r Added '"..name.."' to "..group..".")
+    table.insert(NCCDB.customNames, { name = name, group = group })
+    print("|cff00ff88NCC:|r Added '"..name.."' to "..group.." (saved).")
     return
 
   elseif msg == "on" then
@@ -421,6 +444,7 @@ f:RegisterEvent("CHAT_MSG_LOOT")
 f:SetScript("OnEvent", function(self, event, ...)
   if event == "PLAYER_LOGIN" or event == "PLAYER_REGEN_ENABLED" then
     applyDefaults()
+    LoadCustomNames()
     RebuildPartySet()
     wipe(deadPlayed)
     CancelPullTimer()
