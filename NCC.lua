@@ -3,6 +3,9 @@ local ADDON = ...
 local f = CreateFrame("Frame")
 NCCDB = NCCDB or {}
 
+local NCC_PREFIX = "NCC_SYNC"
+C_ChatInfo.RegisterAddonMessagePrefix(NCC_PREFIX)
+
 
 -- ===== Settings =====
 local defaults = { enabled = true, customNames = {} }
@@ -308,6 +311,21 @@ local function CancelPullTimer()
 end
 
 
+local function SendPullSync(seconds)
+  local channel = IsInRaid() and "RAID" or (IsInGroup() and "PARTY" or nil)
+  if channel then
+    C_ChatInfo.SendAddonMessage(NCC_PREFIX, "PULL:" .. seconds, channel)
+  end
+end
+
+local function SendCancelSync()
+  local channel = IsInRaid() and "RAID" or (IsInGroup() and "PARTY" or nil)
+  if channel then
+    C_ChatInfo.SendAddonMessage(NCC_PREFIX, "CANCEL", channel)
+  end
+end
+
+
 local function StartPullTimer(seconds)
   CancelPullTimer()
   if not NCCDB.enabled then return end
@@ -405,15 +423,18 @@ SlashCmdList["NCC"] = function(msg)
 
   elseif msg == "pull" then
     StartPullTimer(10)
+    SendPullSync(10)
   elseif msg:match("^pull%s+%d+$") then
     local secs = tonumber(msg:match("^pull%s+(%d+)$"))
     if secs and secs > 0 and secs <= 60 then
       StartPullTimer(secs)
+      SendPullSync(secs)
     else
       print("|cff00ff88NCC:|r Pull timer must be between 1 and 60 seconds.")
     end
   elseif msg == "pull cancel" or msg == "pullcancel" then
     CancelPullTimer()
+    SendCancelSync()
     print("|cff00ff88NCC:|r Pull timer cancelled.")
 
   else
@@ -439,6 +460,7 @@ f:RegisterEvent("PLAYER_ENTERING_WORLD")
 f:RegisterEvent("UNIT_HEALTH")
 f:RegisterEvent("ENCOUNTER_LOOT_RECEIVED")
 f:RegisterEvent("CHAT_MSG_LOOT")
+f:RegisterEvent("CHAT_MSG_ADDON")
 
 
 f:SetScript("OnEvent", function(self, event, ...)
@@ -457,6 +479,23 @@ f:SetScript("OnEvent", function(self, event, ...)
     OnEncounterLootReceived(...)
   elseif event == "CHAT_MSG_LOOT" then
     OnChatMsgLoot(...)
+  elseif event == "CHAT_MSG_ADDON" then
+    local prefix, message, channel, sender = ...
+    if prefix == NCC_PREFIX then
+      local myName = GetUnitName("player", true)
+      if sender == myName then return end  -- don't double-trigger on self
+      local cmd, arg = string.match(message, "^(%a+):?(%d*)$")
+      if cmd == "PULL" and tonumber(arg) then
+        local secs = tonumber(arg)
+        if secs > 0 and secs <= 60 then
+          print(string.format("|cff00ff88NCC:|r Pull timer synced from %s: %ds", sender, secs))
+          StartPullTimer(secs)
+        end
+      elseif cmd == "CANCEL" then
+        print(string.format("|cff00ff88NCC:|r Pull timer cancelled by %s", sender))
+        CancelPullTimer()
+      end
+    end
   elseif event == "UNIT_SPELLCAST_SUCCEEDED" then
     HandleUnitSpellcastSucceeded(...)
   end
