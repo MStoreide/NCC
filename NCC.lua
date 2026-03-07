@@ -27,7 +27,7 @@ end
 local PATH_LUST        = "Interface\\AddOns\\NCC\\media\\lust.ogg"
 local PATH_RING        = "Interface\\AddOns\\NCC\\media\\finger.ogg"
 local PATH_PULL_START  = "Interface\\AddOns\\NCC\\media\\pull_start.mp3"
-local PATH_PULL_END    = "Interface\\AddOns\\NCC\\media\\lust.ogg"
+local PATH_PULL_END    = "Interface\\AddOns\\NCC\\media\\beastlong.mp3"
 local PATH_COUNTDOWN = {
   [5] = "Interface\\AddOns\\NCC\\media\\5.ogg",
   [4] = "Interface\\AddOns\\NCC\\media\\4.ogg",
