@@ -326,14 +326,17 @@ local function SendCancelSync()
 end
 
 
-local function StartPullTimer(seconds)
+local function StartPullTimer(seconds, isInitiator)
   CancelPullTimer()
   if not NCCDB.enabled then return end
 
   local remaining = seconds
   print(string.format("|cff00ff88NCC:|r Pull timer started: %d seconds", seconds))
 
-  local chatType = IsInRaid() and "RAID_WARNING" or (IsInGroup() and "PARTY" or nil)
+  local chatType = nil
+  if isInitiator then
+    chatType = IsInRaid() and "RAID_WARNING" or (IsInGroup() and "PARTY" or nil)
+  end
   if chatType then SendChatMessage("Pull in " .. remaining .. "s", chatType) end
 
   PlayPullStartSound()
@@ -422,12 +425,12 @@ SlashCmdList["NCC"] = function(msg)
     print("|cff00ff88NCC:|r test ring sound"); PlayRingSound()
 
   elseif msg == "pull" then
-    StartPullTimer(10)
+    StartPullTimer(10, true)
     SendPullSync(10)
   elseif msg:match("^pull%s+%d+$") then
     local secs = tonumber(msg:match("^pull%s+(%d+)$"))
     if secs and secs > 0 and secs <= 60 then
-      StartPullTimer(secs)
+      StartPullTimer(secs, true)
       SendPullSync(secs)
     else
       print("|cff00ff88NCC:|r Pull timer must be between 1 and 60 seconds.")
@@ -488,7 +491,7 @@ f:SetScript("OnEvent", function(self, event, ...)
     local prefix, message, channel, sender = ...
     if prefix == NCC_PREFIX then
       local myName = GetUnitName("player", true)
-      if sender == myName then return end  -- don't double-trigger on self
+      if Ambiguate(sender, "short") == Ambiguate(myName, "short") then return end
       local cmd, arg = string.match(message, "^(%a+):?(%d*)$")
       if cmd == "PULL" and tonumber(arg) then
         local secs = tonumber(arg)
