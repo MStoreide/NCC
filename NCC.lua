@@ -8,7 +8,7 @@ C_ChatInfo.RegisterAddonMessagePrefix(NCC_PREFIX)
 
 
 -- ===== Settings =====
-local defaults = { enabled = true, customNames = {} }
+local defaults = { enabled = true, customNames = {}, debug = false }
 local function applyDefaults()
   NCCDB = NCCDB or {}
   for k, v in pairs(defaults) do
@@ -52,7 +52,7 @@ local SAD_SOUND_PATHS = {
 -- ===== Helpers =====
 local function tryFile(path)
   local ok, handle = PlaySoundFile(path, "Master")
-  print("NCC debug: tryFile", path, "->", ok, handle)
+  if NCCDB.debug then print("NCC debug: tryFile", path, "->", ok, handle) end
   return ok
 end
 
@@ -295,6 +295,8 @@ end
 
 local function HideCountdown()
   if not pullFrame then return end
+  if not pullFrame:IsShown() then return end
+  pullFrame.text:SetText("")
   UIFrameFadeOut(pullFrame, 0.8, 1, 0)
   C_Timer.After(0.8, function()
     if pullFrame then pullFrame:Hide() end
@@ -312,17 +314,15 @@ end
 
 
 local function SendPullSync(seconds)
-  local channel = IsInRaid() and "RAID" or (IsInGroup() and "PARTY" or nil)
-  if channel then
-    C_ChatInfo.SendAddonMessage(NCC_PREFIX, "PULL:" .. seconds, channel)
-  end
+  if not IsInGroup() and not IsInRaid() then return end
+  local channel = IsInRaid() and "RAID" or "PARTY"
+  C_ChatInfo.SendAddonMessage(NCC_PREFIX, "PULL:" .. seconds, channel)
 end
 
 local function SendCancelSync()
-  local channel = IsInRaid() and "RAID" or (IsInGroup() and "PARTY" or nil)
-  if channel then
-    C_ChatInfo.SendAddonMessage(NCC_PREFIX, "CANCEL", channel)
-  end
+  if not IsInGroup() and not IsInRaid() then return end
+  local channel = IsInRaid() and "RAID" or "PARTY"
+  C_ChatInfo.SendAddonMessage(NCC_PREFIX, "CANCEL", channel)
 end
 
 
@@ -366,7 +366,7 @@ end
 -- ===== Slash Commands =====
 SLASH_NCC1 = "/ncc"
 SlashCmdList["NCC"] = function(msg)
-  print("NCC debug: raw msg:", msg)
+  if NCCDB.debug then print("NCC debug: raw msg:", msg) end
   msg = (msg and msg:lower() or "")
 
   if msg == "groups" then
@@ -437,6 +437,10 @@ SlashCmdList["NCC"] = function(msg)
     SendCancelSync()
     print("|cff00ff88NCC:|r Pull timer cancelled.")
 
+  elseif msg == "debug" then
+    NCCDB.debug = not NCCDB.debug
+    print(string.format("|cff00ff88NCC:|r Debug mode: %s", NCCDB.debug and "ON" or "OFF"))
+
   else
     print("|cff00ff88NCC commands:|r")
     print("  /ncc on|off|toggle")
@@ -448,6 +452,7 @@ SlashCmdList["NCC"] = function(msg)
     print("  /ncc add <name> <group>    - add a name to a group")
     print("  /ncc pull [seconds]        - start pull timer (default 10s, max 60s)")
     print("  /ncc pull cancel           - cancel active pull timer")
+    print("  /ncc debug                 - toggle debug output")
   end
 end
 
