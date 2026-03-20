@@ -84,8 +84,8 @@ local PLAYER_GROUPS = {
   group3 = {"rocketboy","boltsman","furryfaen","beefclown","smoothfuk","mugork"},
   group4 = {"trollfjert","plipp","divahauger","månki","jøssånøfyse","lupercal","pissdoggo"},
   group5 = {"theshtwinds","speltlompe"},
-  group6 = {"dovaahki","werloth"},
-  group7 = {"hooleesheet"},
+  group6 = {"dovaahki","werloth", "Demonlars"},
+  group7 = {"hooleesheet", "kevaann"},
   group8 = {"shandriz"},
 }
 
