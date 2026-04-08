@@ -41,7 +41,7 @@ local SAD_SOUND_PATHS = {
   group1 = "Interface\\AddOns\\NCC\\media\\braka_sad.ogg",
   group2 = "Interface\\AddOns\\NCC\\media\\martin_sad.ogg",
   group3 = "Interface\\AddOns\\NCC\\media\\marius_sad.ogg",
-  group4 = "Interface\\AddOns\\NCC\\media\\markus_sad.ogg",
+  group4 = "Interface\\AddOns\\NCC\\media\\markus_sad2.ogg",
   group5 = "Interface\\AddOns\\NCC\\media\\hasse_sad.ogg",
   group6 = "Interface\\AddOns\\NCC\\media\\hamrick_sad.ogg",
   group7 = "Interface\\AddOns\\NCC\\media\\kevin_sad.mp3",
@@ -84,7 +84,7 @@ local PLAYER_GROUPS = {
   group3 = {"rocketboy","boltsman","furryfaen","beefclown","smoothfuk","mugork"},
   group4 = {"trollfjert","plipp","divahauger","månki","jøssånøfyse","lupercal","pissdoggo"},
   group5 = {"theshtwinds","speltlompe"},
-  group6 = {"dovaahki","werloth", "Demonlars"},
+  group6 = {"dovaahki","werloth", "demonlars"},
   group7 = {"hooleesheet", "kevaann"},
   group8 = {"shandriz"},
 }
